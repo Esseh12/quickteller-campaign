@@ -6,7 +6,7 @@ export default function SuccessModal({ isOpen, onClose }) {
 
 	return (
 		<div className='fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
-			<div className='bg-white p-8 rounded-xl max-w-md w-full text-center relative shadow-2xl'>
+			<div className='bg-white p-8 rounded-xl max-w-[400px] md:max-w-md w-full text-center relative shadow-2xl'>
 				<button
 					onClick={onClose}
 					className='absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors cursor-pointer'>
