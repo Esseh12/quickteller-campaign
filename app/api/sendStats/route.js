@@ -1,16 +1,19 @@
 import nodemailer from 'nodemailer';
 import clientPromise from '@/lib/mongodb';
 
-export async function GET() {
+export async function GET(req) {
+	const authHeader = req.headers.get('Authorization');
+	if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+		return new Response('Unauthorized', { status: 401 });
+	}
+
 	try {
 		const client = await clientPromise;
 		const db = client.db('reservations_db');
 		const collection = db.collection('reservations');
 
-		// Get stats
 		const totalReservations = await collection.countDocuments();
 
-		// Send email
 		const transporter = nodemailer.createTransport({
 			service: 'gmail',
 			auth: {
@@ -21,7 +24,7 @@ export async function GET() {
 
 		await transporter.sendMail({
 			from: process.env.GMAIL_USERNAME,
-			to: 'primedevng@gmail.com',
+			to: 'iswdesignteam@gmail.com',
 			subject: 'Reservation Stats Update',
 			html: `
         <h2>Quickteller Campaign Stats</h2>
@@ -30,6 +33,7 @@ export async function GET() {
       `,
 		});
 
+		console.log('Stats email sent at:', new Date().toLocaleString());
 		return new Response(JSON.stringify({ success: true }), { status: 200 });
 	} catch (err) {
 		console.error('Stats email error:', err);
