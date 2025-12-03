@@ -17,7 +17,7 @@ export default function TextInput({
 				value={value}
 				onChange={onChange}
 				required={required}
-				className='border border-gray-300 rounded-md p-2 w-sm'
+				className='border border-gray-300 rounded-md p-2 md:w-sm'
 			/>
 		</div>
 	);
