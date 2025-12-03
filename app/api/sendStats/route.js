@@ -1,19 +1,22 @@
+import connectDB from '@/lib/mongodb';
+import Reservation from '@/models/Reservation';
 import nodemailer from 'nodemailer';
-import clientPromise from '@/lib/mongodb';
 
 export async function GET(req) {
+	// Check CRON_SECRET
 	const authHeader = req.headers.get('Authorization');
 	if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
 		return new Response('Unauthorized', { status: 401 });
 	}
 
 	try {
-		const client = await clientPromise;
-		const db = client.db('reservations_db');
-		const collection = db.collection('reservations');
+		await connectDB(); // connect to MongoDB
+		console.log('DB connected for stats');
 
-		const totalReservations = await collection.countDocuments();
+		// Get total reservations
+		const totalReservations = await Reservation.countDocuments();
 
+		// Send email
 		const transporter = nodemailer.createTransport({
 			service: 'gmail',
 			auth: {
@@ -34,7 +37,10 @@ export async function GET(req) {
 		});
 
 		console.log('Stats email sent at:', new Date().toLocaleString());
-		return new Response(JSON.stringify({ success: true }), { status: 200 });
+
+		return new Response(JSON.stringify({ success: true, totalReservations }), {
+			status: 200,
+		});
 	} catch (err) {
 		console.error('Stats email error:', err);
 		return new Response(
