@@ -5,7 +5,6 @@ import TextInput from './TextInput';
 import FileUpload from './FileUpload';
 import SelectInput from './SelectInput';
 import SuccessModal from '../Modal/SuccessModal';
-import { sendEmail } from '@/app/actions/sendEmail';
 import { uploadToCloudinary } from '@/app/utils/uploadCloudinary';
 
 export default function ReservationForm() {
@@ -40,8 +39,29 @@ export default function ReservationForm() {
 		setLoading(true);
 
 		try {
+			// Validation
+			if (
+				!formData.firstname ||
+				!formData.lastname ||
+				!formData.email ||
+				!formData.phone ||
+				!formData.country
+			) {
+				alert('Please fill all required fields');
+				setLoading(false);
+				return;
+			}
+
 			if (!formData.email.endsWith('@gmail.com')) {
 				alert('Only Gmail addresses are allowed');
+				setLoading(false);
+				return;
+			}
+
+			// Phone validation - only numbers
+			const phoneRegex = /^[0-9]+$/;
+			if (!phoneRegex.test(formData.phone)) {
+				alert('Phone number should contain only numbers');
 				setLoading(false);
 				return;
 			}
@@ -52,15 +72,29 @@ export default function ReservationForm() {
 			}
 
 			const data = new FormData();
-			data.append('firstname', formData.firstname);
-			data.append('lastname', formData.lastname);
-			data.append('email', formData.email);
-			data.append('phone', formData.phone);
+			data.append('firstname', formData.firstname.trim());
+			data.append('lastname', formData.lastname.trim());
+			data.append('email', formData.email.trim().toLowerCase());
+			data.append('phone', formData.phone.trim());
 			data.append('country', formData.country);
 			data.append('photoUrl', imageUrl);
 
-			await sendEmail(data);
+			// Call the API route instead of the server action
+			const response = await fetch('/api/reservations', {
+				method: 'POST',
+				body: data,
+			});
+
+			const result = await response.json();
+
+			if (!result.success) {
+				alert(result.message); // shows duplicate error or validation errors
+				setLoading(false);
+				return;
+			}
+
 			setSuccess(true);
+
 			// Clear form data on success
 			setFormData({
 				firstname: '',
@@ -70,6 +104,10 @@ export default function ReservationForm() {
 				country: '',
 				photo: null,
 			});
+
+			// Reset file input
+			const fileInput = document.querySelector('input[type="file"]');
+			if (fileInput) fileInput.value = '';
 		} catch (error) {
 			console.error('Submit Error:', error);
 			alert('Something went wrong. Please try again.');
