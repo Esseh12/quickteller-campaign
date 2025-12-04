@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
-import clientPromise from '@/lib/mongodb.js';
+import { connectDB } from '@/lib/mongodb';
+import Reservation from '@/models/Reservation';
 
 export async function sendEmail(formData) {
 	const firstname = formData.get('firstname');
@@ -18,12 +19,11 @@ export async function sendEmail(formData) {
 			};
 		}
 
-		const client = await clientPromise;
-		const db = client.db('reservations_db');
-		const collection = db.collection('reservations');
+		// Connect to MongoDB
+		await connectDB();
 
 		// Check for existing reservation
-		const exists = await collection.findOne({
+		const exists = await Reservation.findOne({
 			$or: [{ email }, { phone }],
 		});
 
@@ -34,18 +34,17 @@ export async function sendEmail(formData) {
 			};
 		}
 
-		// Insert into MongoDB
-		const result = await collection.insertOne({
+		// Create new reservation
+		const reservation = await Reservation.create({
 			firstname,
 			lastname,
 			email,
 			phone,
 			country,
 			photoUrl: photoUrl || '',
-			createdAt: new Date(),
 		});
 
-		console.log('Inserted document ID:', result.insertedId);
+		console.log('Reservation created:', reservation._id);
 
 		// Send email notification
 		const transporter = nodemailer.createTransport({
@@ -81,18 +80,19 @@ export async function sendEmail(formData) {
 	} catch (err) {
 		console.error('Reservation Error:', err);
 
-		// Handle specific MongoDB errors
+		// Handle Mongoose validation errors
+		if (err.name === 'ValidationError') {
+			return {
+				success: false,
+				message: 'Invalid data provided.',
+			};
+		}
+
+		// Handle duplicate key errors
 		if (err.code === 11000) {
 			return {
 				success: false,
 				message: 'Duplicate entry found. Email or phone already exists.',
-			};
-		}
-
-		if (err.message.includes('ECONNREFUSED')) {
-			return {
-				success: false,
-				message: 'Database connection failed. Please try again later.',
 			};
 		}
 
