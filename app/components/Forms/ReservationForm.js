@@ -88,11 +88,10 @@ export default function ReservationForm() {
 			const result = await response.json();
 
 			if (!result.success) {
-				alert(result.message); // shows duplicate error or validation errors
+				alert(result.message);
 				setLoading(false);
 				return;
 			}
-
 			setSuccess(true);
 
 			// Clear form data on success

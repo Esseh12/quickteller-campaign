@@ -19,7 +19,7 @@ export async function GET(req) {
 
 		await transporter.sendMail({
 			from: process.env.GMAIL_USERNAME,
-			to: 'primedevng@gmail.com', // your target email
+			to: 'primedevng@gmail.com',
 			subject: 'Reservation Stats Update',
 			html: `
         <h2>Quickteller Campaign Stats</h2>
