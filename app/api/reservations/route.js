@@ -39,11 +39,12 @@ export async function POST(req) {
 
 		return Response.json({ success: true, message: 'Success' });
 	} catch (error) {
-		console.error(error);
+		console.error('API ERROR:', error);
+
 		return Response.json(
 			{
 				success: false,
-				message: 'Server error',
+				message: error.message || 'Server error',
 			},
 			{ status: 500 }
 		);
