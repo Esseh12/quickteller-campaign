@@ -1,5 +1,6 @@
 import { connectDB } from '@/lib/mongodb';
 import Reservation from '@/models/Reservation';
+import nodemailer from 'nodemailer';
 
 export async function POST(req) {
 	try {
@@ -13,7 +14,7 @@ export async function POST(req) {
 		const country = data.get('country');
 		const photoUrl = data.get('photoUrl') || '';
 
-		// Check duplicate email or phone
+		// Check duplicates
 		const existing = await Reservation.findOne({
 			$or: [{ email }, { phone }],
 		});
@@ -28,7 +29,8 @@ export async function POST(req) {
 			);
 		}
 
-		await Reservation.create({
+		// Create reservation
+		const reservation = await Reservation.create({
 			firstname,
 			lastname,
 			email,
@@ -37,7 +39,45 @@ export async function POST(req) {
 			photoUrl,
 		});
 
-		return Response.json({ success: true, message: 'Success' });
+		// --- SEND EMAIL ---
+		const transporter = nodemailer.createTransport({
+			service: 'gmail',
+			auth: {
+				user: process.env.GMAIL_USERNAME,
+				pass: process.env.GMAIL_PASSWORD,
+			},
+		});
+
+		await transporter.sendMail({
+			from: `"Reservation Team" <${process.env.GMAIL_USERNAME}>`,
+			to: email,
+			subject: 'Your Reservation is Confirmed',
+			html: `
+                <div style="font-family: Arial; line-height: 1.6;">
+                    <h2>Hello ${firstname} ${lastname},</h2>
+                    <p>Your reservation has been <strong>successfully confirmed!</strong></p>
+
+                    <h3>Reservation Details</h3>
+                    <ul>
+                        <li><strong>Email:</strong> ${email}</li>
+                        <li><strong>Phone:</strong> ${phone}</li>
+                        <li><strong>Country:</strong> ${country}</li>
+                        <li><strong>Date:</strong> ${new Date().toLocaleString()}</li>
+                    </ul>
+
+                    <p>Thank you for reserving your spot with us 🚀</p>
+                </div>
+            `,
+		});
+
+		// Return success
+		return Response.json(
+			{
+				success: true,
+				message: 'Reservation successful! Email sent.',
+			},
+			{ status: 200 }
+		);
 	} catch (error) {
 		console.error('API ERROR:', error);
 
