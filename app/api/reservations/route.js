@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/mongodb';
 import Reservation from '@/models/Reservation';
 import nodemailer from 'nodemailer';
+import { reservationEmailTemplate } from '@/app/email-templates/reservationEmail';
 
 export async function POST(req) {
 	try {
@@ -23,14 +24,14 @@ export async function POST(req) {
 			return Response.json(
 				{
 					success: false,
-					message: 'A user with this email or phone number already exists',
+					message: 'Email already exists',
 				},
 				{ status: 400 }
 			);
 		}
 
 		// Create reservation
-		const reservation = await Reservation.create({
+		await Reservation.create({
 			firstname,
 			lastname,
 			email,
@@ -48,26 +49,20 @@ export async function POST(req) {
 			},
 		});
 
+		// Use the external template here
+		const htmlTemplate = reservationEmailTemplate({
+			firstname,
+			lastname,
+			email,
+			phone,
+			country,
+		});
+
 		await transporter.sendMail({
 			from: `"Reservation Team" <${process.env.GMAIL_USERNAME}>`,
 			to: email,
 			subject: 'Your Reservation is Confirmed',
-			html: `
-                <div style="font-family: Arial; line-height: 1.6;">
-                    <h2>Hello ${firstname} ${lastname},</h2>
-                    <p>Your reservation has been <strong>successfully confirmed!</strong></p>
-
-                    <h3>Reservation Details</h3>
-                    <ul>
-                        <li><strong>Email:</strong> ${email}</li>
-                        <li><strong>Phone:</strong> ${phone}</li>
-                        <li><strong>Country:</strong> ${country}</li>
-                        <li><strong>Date:</strong> ${new Date().toLocaleString()}</li>
-                    </ul>
-
-                    <p>Thank you for reserving your spot with us</p>
-                </div>
-            `,
+			html: htmlTemplate,
 		});
 
 		// Return success
