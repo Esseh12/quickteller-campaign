@@ -65,7 +65,7 @@ export async function POST(req) {
                         <li><strong>Date:</strong> ${new Date().toLocaleString()}</li>
                     </ul>
 
-                    <p>Thank you for reserving your spot with us 🚀</p>
+                    <p>Thank you for reserving your spot with us</p>
                 </div>
             `,
 		});
