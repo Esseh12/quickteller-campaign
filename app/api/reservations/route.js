@@ -16,7 +16,7 @@ export async function POST(req) {
 
 		// Check duplicates
 		const existing = await Reservation.findOne({
-			$or: [{ email }, { phone }],
+			$or: [{ email }],
 		});
 
 		if (existing) {
