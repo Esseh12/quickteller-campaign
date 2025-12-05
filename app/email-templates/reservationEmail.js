@@ -31,12 +31,12 @@ export function reservationEmailTemplate({
 
     <!-- Logo -->
     <div class="py-10 px-10 pb-6 text-center sm:px-5">
-      <img src="/dark-interswitch-logo.svg" alt="Logo" class="inline-block w-[137px] h-8" />
+      <img src="https://www.interswitchgroup.com/assets/images/home/interswitch_logo.svg" alt="Logo" class="inline-block w-[137px] h-8" />
     </div>
 
     <!-- Banner -->
     <div>
-      <img src="/public/qtb_isw.webp" alt="banner" />
+      <img src="https://www.interswitchgroup.com/assets/images/home/qtb_isw.png" alt="banner" />
     </div>
 
     <!-- Main Title -->
@@ -63,12 +63,12 @@ export function reservationEmailTemplate({
       </ul>
 
       <p class="text-sm sm:text-base text-[#333333] mb-4">
-        Thank you for choosing to reserve with us. We’ll keep you updated with any further information.
+        Thank you for choosing us. We’ll keep you updated with any further information.
       </p>
 
       <div class="text-[15px] leading-relaxed text-[#333333]">
         <p>Warm regards,</p>
-        <p class="mb-1 text-sm md:text-base">The Reservations Team</p>
+        <p class="mb-1 text-sm md:text-base">The Marketing Team</p>
       </div>
 
       <!-- CTA Button -->
@@ -88,11 +88,11 @@ export function reservationEmailTemplate({
       </p>
 
       <p class="text-sm md:text-base text-[#333333] mt-6 mb-8 md:mb-14">
-        Reservations HQ, Lagos Nigeria
+        Quickteller HQ, Lagos Nigeria
       </p>
 
       <div class="flex justify-between items-center mb-6">
-        <img src="/public/interswitch_logo.svg" alt="Logo" class="inline-block w-[98px]" />
+        <img src="https://www.interswitchgroup.com/assets/images/home/interswitch_logo.svg" alt="Logo" class="inline-block w-[98px]" />
 
         <div class="flex gap-3">
           <a href="#" aria-label="Twitter" class="inline-block">
