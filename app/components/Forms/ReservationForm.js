@@ -15,7 +15,7 @@ export default function ReservationForm() {
 		email: '',
 		phone: '',
 		country: '',
-		photo: '',
+		photourl: '',
 	});
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
@@ -101,7 +101,11 @@ export default function ReservationForm() {
 			const otpResponse = await fetch('/api/otp/send', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: formData.email.trim().toLowerCase() }),
+				body: JSON.stringify({
+					email: formData.email.trim().toLowerCase(),
+					firstname: formData.firstname.trim(),
+					lastname: formData.lastname.trim(),
+				}),
 			});
 
 			const otpResult = await otpResponse.json();

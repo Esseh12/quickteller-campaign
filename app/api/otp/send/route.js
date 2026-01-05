@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { otpEmailTemplate } from '@/app/email-templates/otpEmailTemplate';
 
 // Store OTPs temporarily
 const otpStore = new Map();
@@ -10,7 +11,7 @@ function generateOTP() {
 
 export async function POST(req) {
 	try {
-		const { email } = await req.json();
+		const { email, firstname, lastname } = await req.json();
 
 		if (!email || !email.endsWith('@gmail.com')) {
 			return Response.json(
@@ -37,43 +38,12 @@ export async function POST(req) {
 			},
 		});
 
-		const htmlTemplate = `
-			<!DOCTYPE html>
-			<html>
-			<head>
-				<style>
-					body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-					.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-					.header { background-color: #0052CC; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-					.content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-					.otp-box { background-color: white; border: 2px dashed #0052CC; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
-					.otp-code { font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #0052CC; }
-					.footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
-				</style>
-			</head>
-			<body>
-				<div class="container">
-					<div class="header">
-						<h1>Email Verification</h1>
-					</div>
-					<div class="content">
-						<p>Hello,</p>
-						<p>Thank you for making a reservation. Please use the following One-Time Password (OTP) to verify your email address:</p>
-						
-						<div class="otp-box">
-							<div class="otp-code">${otp}</div>
-						</div>
-						
-						<p><strong>This OTP will expire in 5 minutes.</strong></p>
-						<p>If you didn't request this code, please ignore this email.</p>
-					</div>
-					<div class="footer">
-						<p>This is an automated message, please do not reply.</p>
-					</div>
-				</div>
-			</body>
-			</html>
-		`;
+		// Use the external template
+		const htmlTemplate = otpEmailTemplate({
+			firstname,
+			lastname,
+			otp,
+		});
 
 		await transporter.sendMail({
 			from: `"Reservation Team" <${process.env.GMAIL_USERNAME}>`,
