@@ -14,10 +14,11 @@ export default function ReservationForm() {
 		email: '',
 		phone: '',
 		country: '',
-		photo: null,
+		photo: '',
 	});
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
+	const [photoUploading, setPhotoUploading] = useState(false);
 
 	const handleTextChange = (e) => {
 		// Handle changes for text inputs
@@ -25,16 +26,34 @@ export default function ReservationForm() {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleFileChange = (e) => {
+	const handleFileChange = async (e) => {
 		// Handles file input changes
 		// acess the first file selected
 		const file = e.target.files?.[0];
-		if (!file) return;
+		if (!file) {
+			setFormData((prev) => ({ ...prev, photoUrl: '' }));
+			return;
+		}
 		if (file.size > 1024 * 1024) {
 			alert('Photo must be less than 1MB');
 			return;
 		}
-		setFormData((prev) => ({ ...prev, photo: file }));
+		// setFormData((prev) => ({ ...prev, photo: file }));
+		try {
+			setPhotoUploading(true);
+
+			const imageUrl = await uploadToCloudinary(file);
+
+			setFormData((prev) => ({
+				...prev,
+				photoUrl: imageUrl,
+			}));
+		} catch (err) {
+			console.error(err);
+			alert('Image upload failed. Try again.');
+		} finally {
+			setPhotoUploading(false);
+		}
 	};
 
 	const handleSubmit = async (e) => {
@@ -55,6 +74,12 @@ export default function ReservationForm() {
 				return;
 			}
 
+			if (!formData.photoUrl) {
+				alert('Please upload a photo');
+				setLoading(false);
+				return;
+			}
+
 			if (!formData.email.endsWith('@gmail.com')) {
 				alert('Only Gmail addresses are allowed');
 				setLoading(false);
@@ -69,10 +94,10 @@ export default function ReservationForm() {
 				return;
 			}
 
-			let imageUrl = '';
-			if (formData.photo) {
-				imageUrl = await uploadToCloudinary(formData.photo);
-			}
+			// let imageUrl = '';
+			// if (formData.photo) {
+			// 	imageUrl = await uploadToCloudinary(formData.photo);
+			// }
 
 			const data = new FormData();
 			data.append('firstname', formData.firstname.trim());
@@ -80,7 +105,7 @@ export default function ReservationForm() {
 			data.append('email', formData.email.trim().toLowerCase());
 			data.append('phone', formData.phone.trim());
 			data.append('country', formData.country);
-			data.append('photoUrl', imageUrl);
+			data.append('photoUrl', formData.photoUrl);
 
 			// Call the API route instead of the server action
 			const response = await fetch('/api/reservations', {
@@ -127,7 +152,8 @@ export default function ReservationForm() {
 					label='Upload Photo (max 1MB)'
 					name='photo'
 					onChange={handleFileChange}
-					file={formData.photo}
+					photoUrl={formData.photoUrl}
+					uploading={photoUploading}
 				/>
 
 				<div className='grid md:grid-cols-2 gap-4'>
