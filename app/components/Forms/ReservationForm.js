@@ -5,6 +5,7 @@ import TextInput from './TextInput';
 import FileUpload from './FileUpload';
 import SelectInput from './SelectInput';
 import SuccessModal from '../Modal/SuccessModal';
+import OTPModal from '../Modal/OTPmodal';
 import { uploadToCloudinary } from '@/app/utils/uploadCloudinary';
 
 export default function ReservationForm() {
@@ -19,6 +20,8 @@ export default function ReservationForm() {
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [photoUploading, setPhotoUploading] = useState(false);
+	const [showOTPModal, setShowOTPModal] = useState(false);
+	const [otpLoading, setOtpLoading] = useState(false);
 
 	const handleTextChange = (e) => {
 		// Handle changes for text inputs
@@ -94,11 +97,54 @@ export default function ReservationForm() {
 				return;
 			}
 
-			// let imageUrl = '';
-			// if (formData.photo) {
-			// 	imageUrl = await uploadToCloudinary(formData.photo);
-			// }
+			// Send OTP
+			const otpResponse = await fetch('/api/otp/send', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: formData.email.trim().toLowerCase() }),
+			});
 
+			const otpResult = await otpResponse.json();
+
+			if (!otpResult.success) {
+				alert(otpResult.message);
+				setLoading(false);
+				return;
+			}
+
+			// Show OTP modal
+			setShowOTPModal(true);
+			setLoading(false);
+		} catch (error) {
+			console.error('Submit Error:', error);
+			alert('Something went wrong. Please try again.');
+			setLoading(false);
+		}
+	};
+
+	const handleOTPVerify = async (otp) => {
+		setOtpLoading(true);
+
+		try {
+			// Verify OTP
+			const verifyResponse = await fetch('/api/otp/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: formData.email.trim().toLowerCase(),
+					otp,
+				}),
+			});
+
+			const verifyResult = await verifyResponse.json();
+
+			if (!verifyResult.success) {
+				alert(verifyResult.message);
+				setOtpLoading(false);
+				return;
+			}
+
+			// OTP verified - now submit the reservation
 			const data = new FormData();
 			data.append('firstname', formData.firstname.trim());
 			data.append('lastname', formData.lastname.trim());
@@ -107,7 +153,6 @@ export default function ReservationForm() {
 			data.append('country', formData.country);
 			data.append('photoUrl', formData.photoUrl);
 
-			// Call the API route instead of the server action
 			const response = await fetch('/api/reservations', {
 				method: 'POST',
 				body: data,
@@ -117,29 +162,32 @@ export default function ReservationForm() {
 
 			if (!result.success) {
 				alert(result.message);
-				setLoading(false);
+				setOtpLoading(false);
 				return;
 			}
+
+			// Success!
+			setShowOTPModal(false);
 			setSuccess(true);
 
-			// Clear form data on success
+			// Clear form data
 			setFormData({
 				firstname: '',
 				lastname: '',
 				email: '',
 				phone: '',
 				country: '',
-				photo: null,
+				photoUrl: '',
 			});
 
 			// Reset file input
 			const fileInput = document.querySelector('input[type="file"]');
 			if (fileInput) fileInput.value = '';
 		} catch (error) {
-			console.error('Submit Error:', error);
+			console.error('OTP Verify Error:', error);
 			alert('Something went wrong. Please try again.');
 		} finally {
-			setLoading(false);
+			setOtpLoading(false);
 		}
 	};
 
@@ -206,11 +254,19 @@ export default function ReservationForm() {
 
 				<button
 					type='submit'
-					disabled={loading}
-					className='bg-secondaryBlue text-white px-4 py-2 rounded-md w-full font-semibold cursor-pointer'>
-					{loading ? 'Submitting...' : 'Submit'}
+					disabled={loading || photoUploading}
+					className='bg-secondaryBlue text-white px-4 py-2 rounded-md w-full font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'>
+					{loading ? 'Sending OTP...' : 'Submit'}
 				</button>
 			</form>
+
+			<OTPModal
+				isOpen={showOTPModal}
+				onClose={() => setShowOTPModal(false)}
+				onVerify={handleOTPVerify}
+				email={formData.email}
+				loading={otpLoading}
+			/>
 
 			<SuccessModal
 				isOpen={success}
