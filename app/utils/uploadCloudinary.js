@@ -2,7 +2,9 @@ export async function uploadToCloudinary(file) {
 	const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 	const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
+	// use form data to send file
 	const formData = new FormData();
+	// attach the file the user selected and upload preset
 	formData.append('file', file);
 	formData.append('upload_preset', uploadPreset);
 

@@ -20,11 +20,14 @@ export default function ReservationForm() {
 	const [success, setSuccess] = useState(false);
 
 	const handleTextChange = (e) => {
+		// Handle changes for text inputs
 		const { name, value } = e.target;
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
 	const handleFileChange = (e) => {
+		// Handles file input changes
+		// acess the first file selected
 		const file = e.target.files?.[0];
 		if (!file) return;
 		if (file.size > 1024 * 1024) {
