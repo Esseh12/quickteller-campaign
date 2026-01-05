@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import Image from 'next/image';
 
@@ -31,6 +31,13 @@ export default function OTPModal({
 			setError('');
 		}
 	};
+
+	useEffect(() => {
+		if (!isOpen) {
+			setOtp('');
+			setError('');
+		}
+	}, [isOpen]);
 
 	if (!isOpen) return null;
 
